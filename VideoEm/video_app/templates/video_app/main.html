@@ -1,0 +1,12 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+
+<table class="video-table" id="videoTable"></table>
+
+<script src="{% static 'video_app/js/functions.js' %}?v={{ STATIC_VERSION }}"></script>
+<script src="{% static 'video_app/js/main.js' %}?v={{ STATIC_VERSION }}"></script>
+
+{% endblock %}
+

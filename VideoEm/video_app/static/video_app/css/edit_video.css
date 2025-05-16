@@ -1,0 +1,137 @@
+.edit_video_form {
+    width: 50%;
+    margin-top: 5%;
+    margin-left: 2%;
+    margin-right: 2%;
+    margin-bottom: 5%;
+    width: 96%;
+}
+
+.form-control {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+}
+
+.button-container {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+}
+
+.button-container button {
+    padding: 10px 15px;
+    color: #fff;
+    cursor: pointer;
+    border-radius: 10px;
+    margin-bottom: 10px;
+}
+
+.btn_edit_save {
+    background-color: #5F11CE;
+}
+
+.btn_edit_save:hover {
+    background-color: #332299;
+}
+
+.btn_edit_delete {
+    margin-left: auto;
+    background-color: #CE1111;
+}
+
+.btn_edit_delete:hover {
+    background-color: #991F1F;
+}
+
+.edit_video_table {
+    width: 100%;
+    border-radius: 10px;
+    border: 1px solid #ddd;
+}
+
+.edit_video_th, .edit_video_td {
+    text-align: left;
+    padding: 10px;
+    border: 1px solid #ddd;
+}
+.edit_video_th {
+    width: 25%;
+    font-weight: bold;
+}
+
+.edit_video_td {
+    width: 75%;
+}
+
+.video_sample {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    position: relative;
+    width: 70vw;
+    height: auto;
+    margin: 0 auto;
+    margin-top: 1%;
+    margin-bottom: 7%;
+}
+
+.video_sample video {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.video_views, .video_stars {
+    position: absolute;
+    bottom: -24px;
+    font-size: 14px;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    margin-top: 8px;
+}
+
+.video_views {
+    left: 0;
+}
+
+.video_stars {
+    right: 0;
+}
+
+.video_sample svg{
+    width: 2.4vh;
+    height: 2.4vh;
+}
+
+#centerPoint {
+    top: 50%;
+    left: 50%;
+    position: absolute;
+}
+
+#tagAddDialog {
+    position: relative;
+    inset: 60% 20%;
+    border-radius: 1vh;
+    background-color: #222;
+    padding: 1%;
+    color: #E0E0E0;
+}
+
+#tagAddDialog button {
+    background-color: #5F11CE;
+    margin: 1vh;
+    border-radius: 0.5vh;
+    color: #E0E0E0;
+}
+
+#tagAddDialog input {
+    margin-top: 1vh;
+    margin-bottom: 1vh;
+}
+

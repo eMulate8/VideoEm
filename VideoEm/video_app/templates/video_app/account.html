@@ -1,0 +1,39 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block styles %}
+<link type="text/css" href="{% static 'video_app/css/account.css' %}?v={{ STATIC_VERSION }}" rel="stylesheet" />
+{% endblock %}
+
+{% block content %}
+<div class="full_name" id="full_name"></div>
+<div class="container">
+    <div class="image-section">
+        <img id="tg_picture" src="#" alt="Dynamic Image" loading="lazy">
+    </div>
+    <div class="content-section">
+	<div class="user_info" id="username"></div>
+        <div class="user_info" id="time_create"></div>
+        <div class="user_info" id="stars_count"></div>
+        <div class="user_info" id="video_count"></div>
+    </div>
+</div>
+
+<div class="tabs">
+    <div class="tab active" data-tab="tab1">My Videos</div>
+    <div class="tab" data-tab="tab2">My History</div>
+</div>
+
+
+<div id="tab1" class="tab-content active">
+    <table class="video-table" id="videoTable"></table>
+</div>
+
+<div id="tab2" class="tab-content">
+    <table class="video-table" id="history"></table>
+</div>
+
+<script src="{% static 'video_app/js/functions.js' %}?v={{ STATIC_VERSION }}"></script>
+<script src="{% static 'video_app/js/account.js' %}?v={{ STATIC_VERSION }}"></script>
+
+{% endblock %}

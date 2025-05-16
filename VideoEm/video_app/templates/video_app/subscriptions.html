@@ -1,0 +1,13 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+
+<h1 align="center">My Subscriptions</h1>
+
+<table class="video-table" id="videoTable"></table>
+
+<script src="{% static 'video_app/js/functions.js' %}?v={{ STATIC_VERSION }}"></script>
+<script src="{% static 'video_app/js/subscriptions.js' %}?v={{ STATIC_VERSION }}"></script>
+
+{% endblock %}

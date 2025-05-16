@@ -1,0 +1,80 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block styles %}
+<link type="text/css" href="{% static 'video_app/css/edit_video.css' %}" rel="stylesheet" />
+{% endblock %}
+
+
+{% block content %}
+
+<h1 align="center">Edit Video</h1>
+<div id="csrf" data-csrf="{{ csrf_token }}"></div>
+<div class="video_sample">
+    <video src="{{ video.temp_link }}"></video>
+    <div class="video_views">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M2.036 12.322a1.012 1.012 0 0 1 0-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178Z" />
+            <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" />
+        </svg>
+        {{ video.view_count }}
+    </div>
+    <div class="video_stars">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M11.48 3.499a.562.562 0 0 1 1.04 0l2.125 5.111a.563.563 0 0 0 .475.345l5.518.442c.499.04.701.663.321.988l-4.204 3.602a.563.563 0 0 0-.182.557l1.285 5.385a.562.562 0 0 1-.84.61l-4.725-2.885a.562.562 0 0 0-.586 0L6.982 20.54a.562.562 0 0 1-.84-.61l1.285-5.386a.562.562 0 0 0-.182-.557l-4.204-3.602a.562.562 0 0 1 .321-.988l5.518-.442a.563.563 0 0 0 .475-.345L11.48 3.5Z" />
+        </svg>
+        {{ video.stars }}
+    </div>
+</div>
+<form method="post" class="edit_video_form" enctype="multipart/form-data">
+    {% csrf_token %}
+    <div class="button-container">
+        <button type="submit" class="btn_edit_save">Save Changes</button>
+        <button type="submit" class="btn_edit_delete" name="delete" onclick="return confirm('Are you sure you want to delete this video?');">
+            Delete Video
+        </button>
+    </div>
+    <table class="edit_video_table">
+        {% for field in form %}
+            <tr class="edit_video_row">
+                    <th class="edit_video_th">{{ field.label_tag }}</th>
+                    <td class="edit_video_td">
+
+                        {% if field.name == "tags" %}
+
+                            <button type="button" id="openDialog"> + </button>
+
+                            {{ field }}
+                        {% else %}
+                            {{ field }}
+                        {% endif %}
+
+                        {% if field.errors %}
+                            <div class="error">
+                                {{ field.errors }}
+                            </div>
+                        {% endif %}
+
+                    </td>
+            </tr>
+        {% endfor %}
+    </table>
+</form>
+
+<div id="centerPoint">
+    <dialog id="tagAddDialog">
+    <p>
+      <label for="newTag">Enter new tag:</label>
+      <input id="newTag">
+    </p>
+    <div>
+      <button id="cancel" type="reset">Cancel</button>
+      <button id="addTag">Add tag</button>
+    </div>
+</dialog>
+</div>
+
+
+
+<script src="{% static 'video_app/js/edit_video.js' %}?v={{ STATIC_VERSION }}"></script>
+{% endblock %}

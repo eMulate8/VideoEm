@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html>
+<head>
+        {% load static %}
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <script src="https://telegram.org/js/telegram-web-app.js"></script>
+        <title>Index</title>
+</head>
+<body>
+        <div id="csrf" data-csrf="{{ csrf_token }}"></div>
+	<div id="version" data-version="{{ STATIC_VERSION }}"></div>
+
+        <div class="Main">
+                <h1>Hi, <span id="userdata_unsafe"></span></h1>
+        </div>
+
+        <script src="{% static 'video_app/js/index.js' %}?v={{ STATIC_VERSION }}"></script>
+</body>
+</html>

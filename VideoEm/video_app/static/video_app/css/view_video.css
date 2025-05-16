@@ -1,0 +1,117 @@
+body svg{
+    width: 2.4vh;
+    height: 2.4vh;
+    vertical-align: middle;
+}
+
+body button {
+    color: #E0E0E0;
+    border-radius: 4px;
+    cursor: pointer;
+    background-color: #5F11CE;
+    max-width: 100%;
+    padding: 0.5vh;
+}
+
+.center-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    height: 95vh;
+    width: 100vw;
+}
+
+.video_box {
+    display: flex;
+    flex-direction: column;
+    position: relative;
+    width: 95vw;
+    height: auto;
+    font-weight: 700;
+    font-family: "Roboto","Arial",sans-serif;
+    margin-bottom: 5vh;
+}
+
+.video_box video {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    border-radius: 1vw;
+    margin-bottom: 3vh;
+}
+
+.video_description_box {
+    padding: 0.5vh;
+    border-radius: 10px;
+    border: 1px solid #ddd;
+    margin: 0 auto;
+    margin-top: 1vh;
+    width: 96vw;
+    box-shadow: 1px 1px #E0E0E0, -1px -1px  #E0E0E0;
+}
+
+.video_description_box td {
+    padding: 0.5vh;
+}
+
+
+.video_description_box tr {
+    margin-bottom: 0.5vh;
+    margin-left: 0.5vw;
+    margin-right: 0.5vw;
+
+}
+
+.video_description {
+    border: 1px solid #ddd;
+    border-radius: 10px;
+}
+
+.video_title {
+    font-size: 4vh;
+}
+
+.btn_subscribe {
+    text-align: left;
+}
+
+.author {
+    text-align: left;
+    font-size: 3vh;
+}
+
+.video_stars {
+    text-align: right;
+}
+
+.flex-container {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    justify-content: flex-end;
+}
+
+#btn_like:hover {
+    background-color: #332299;
+    border-color: #332299;
+}
+
+
+#btn_subscribe:disabled {
+    background-color: #ddd;
+    color: #888;
+    opacity: 0.6;
+}
+
+#btn_subscribe:hover {
+    background-color: #332299;
+    border-color: #332299;
+}
+
+#btn_subscribe:disabled:hover {
+    background-color: #ddd;
+    border-color: #ddd;
+    color: #888;
+    opacity: 0.6;
+}
