@@ -1,7 +1,6 @@
 # Telegram Video Hosting WebApp  
 
 [![Django](https://img.shields.io/badge/Django-5.1+-green.svg)](https://www.djangoproject.com/)  
-[![Telegram Bot API]](https://core.telegram.org/bots/api)  
 
 A Django web app that hosts videos using **Telegram servers for storage**. Users upload videos via a Telegram bot, edit metadata in the web app, and publish them.  
 
@@ -116,7 +115,7 @@ but keep originally names in mind when copying files.
 ---
 
 ## 📄 License  
-MIT.  
+Apache License 2.0
 
 ---
 
