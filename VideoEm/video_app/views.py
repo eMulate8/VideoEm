@@ -314,16 +314,9 @@ class SearchAPI(APIView):
 
             tags_list = query_tags.split(',')
 
-            videos = Video.objects.filter(tags__tag__in=tags_list).distinct().prefetch_related('tags')
-
-            filtered_videos = [
-                video for video in videos
-                if set(video.tags.values_list('tag', flat=True)).issuperset(tags_list)
-            ]
-
-            video_ids = [video.id for video in filtered_videos]
-
-            queryset = Video.objects.filter(id__in=video_ids)
+            queryset = (Video.objects.annotate(video_tags=ArrayAgg('tags__tag'))
+                        .filter(Q(video_tags__contains=tags_list))
+                        .prefetch_related('tags'))
 
             paginator = VideoCursorPagination()
             paginated_videos = paginator.paginate_queryset(queryset, request)

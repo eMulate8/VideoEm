@@ -19,7 +19,7 @@ A Django web app that hosts videos using **Telegram servers for storage**. Users
 - **User System**:  
   - Registration via Telegram WebApp.  
   - Subscriptions, stars (Telegram currency), and view tracking.  
-- **Database**: SQLite3.  
+- **Database**: PostgreSQL.  
 - **Cache Busting**: Bypasses Telegram’s aggressive WebApp caching.  
 
 ### 📌 Tabs  
@@ -48,6 +48,7 @@ A Django web app that hosts videos using **Telegram servers for storage**. Users
 - Django Rest Framework 3.15+
 - Requests 2.32+
 - Shedule 1.2+
+- Psycopg 2.9+
 
 ### Steps  
 1. **Set up Django project**:  
@@ -111,7 +112,6 @@ but keep originally names in mind when copying files.
   - Bot cannot access videos >20 MB.  
   - File links expire hourly (`update_temp_links.py` fixes this). 
   - Not showing first frame of video as preview (added thuimbnail)  
-- **SQLite3**: Complex queries offloaded to Python (e.g., tag search).  
 
 ---
 
