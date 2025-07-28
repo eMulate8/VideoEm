@@ -1,7 +1,7 @@
 import uuid
 import requests
-from django.db import transaction
 
+from django.db import transaction
 from django.db.models import OuterRef, Subquery
 from django.http import HttpResponse, StreamingHttpResponse
 from django.utils.text import slugify
@@ -15,6 +15,10 @@ from rest_framework import status
 from django.shortcuts import render, get_object_or_404, redirect
 from rest_framework.views import APIView
 from django.db.models import Count
+from django.contrib.postgres.aggregates import ArrayAgg
+from django.db.models import Q
+from django.views.decorators.cache import cache_page
+from django.core.cache import cache
 
 from .forms import EditVideoForm
 from .models import TelegramUser, Video, WatchingHistory, Subscription, Payment, SlugWord, Tag
@@ -48,39 +52,59 @@ class VideoAPIGet(ListAPIView):
     serializer_class = VideoGetSerializerBase
     pagination_class = VideoCursorPagination
 
+    def get_cache_key(self):
+        """
+        Generate a unique cache key based on request parameters
+        """
+        params = self.request.query_params.urlencode()
+        return f'video_get:{self.request.path}:{params}'
+
+
     def get_queryset(self):
         """
         Get all videos or filter by user ID(s) if 'user(s)' query parameter is provided.
         Example request:
-        /api/videos/ - all published videos
-        /api/videos/?user=12345 - all videos uploaded by user with telegram_id=12345
-        /api/videos/?user=12345,67890 - all published videos uploaded by users with telegram_id=12345 and telegram_id=67890
+        api/v1/video_get/ - all published videos
+        api/v1/video_get/?user=12345 - all videos uploaded by user with telegram_id=12345
+        api/v1/video_get/?user=12345,67890 - all published videos uploaded by users with telegram_id=12345 and telegram_id=67890
         """
         user_id = self.request.query_params.get('user')
         user_ids = self.request.query_params.get('users')
 
+        queryset = Video.published.all()
+
         if user_id:
-            return Video.objects.filter(user=user_id)
-
-        if user_ids:
+            queryset = Video.objects.filter(user=user_id)
+        elif user_ids:
             telegram_ids = user_ids.split(',')
-            return Video.published.filter(user__in=telegram_ids)
+            queryset = Video.published.filter(user__in=telegram_ids)
 
-        return Video.published.all().order_by('-time_created')
+        return queryset.order_by('-time_created')
 
     def list(self, request, *args, **kwargs):
         """
         Handles pagination and response formatting.
         """
+        cache_key = self.get_cache_key()
+        cached_data = cache.get(cache_key)
+
+        if cached_data:
+            return Response(cached_data)
+
         queryset = self.get_queryset()
         page = self.paginate_queryset(queryset)
 
         if page is not None:
             serializer = self.get_serializer(page, many=True)
-            return self.get_paginated_response(serializer.data)
+            response = self.get_paginated_response(serializer.data)
+            response_data = response.data
+        else:
+            serializer = self.get_serializer(queryset, many=True)
+            response_data = serializer.data
 
-        serializer = self.get_serializer(queryset, many=True)
-        return Response(serializer.data)
+        cache.set(cache_key, response_data, timeout=60 * 5)
+
+        return Response(response_data)
 
 
 class MyHistoryAPIGet(ListAPIView):
@@ -120,6 +144,18 @@ class UserAPIGet(RetrieveAPIView):
     serializer_class = UserSerializer
     queryset = TelegramUser.objects.all()
     lookup_field = 'telegram_id'
+    cache_timeout = 60 * 10
+
+    def get(self, request, *args, **kwargs):
+        cache_key = f'user_api_get_{kwargs["telegram_id"]}'
+        cached_data = cache.get(cache_key)
+        if cached_data:
+            return Response(cached_data)
+
+        response = super().get(request, *args, **kwargs)
+        cache.set(cache_key, response.data, self.cache_timeout)
+
+        return response
 
 
 class VideoAPIPatch(RetrieveUpdateAPIView):
@@ -147,6 +183,12 @@ class SubscriptionAPI(APIView):
         Requires the 'telegram_id' query parameter.
         """
         telegram_id = request.query_params.get('telegram_id')
+        cache_timeout = 60 * 10
+
+        cache_key = f'subscriptions_{telegram_id}'
+        cached_data = cache.get(cache_key)
+        if cached_data:
+            return Response(cached_data, status=status.HTTP_200_OK)
 
         if not telegram_id:
             return Response({'error': 'telegram_id query parameter is required'}, status=status.HTTP_400_BAD_REQUEST)
@@ -159,6 +201,7 @@ class SubscriptionAPI(APIView):
         subscriptions = user.subscriptions_from.all()
 
         subscriptions_data = SubscriptionSerializer(subscriptions, many=True).data
+        cache.set(cache_key, {'subscriptions': subscriptions_data}, cache_timeout)
 
         return Response({'subscriptions': subscriptions_data}, status=status.HTTP_200_OK)
 
@@ -229,8 +272,8 @@ class GetInvoiceAPI(APIView):
                             status=status.HTTP_400_BAD_REQUEST)
 
         try:
-            user_obj = TelegramUser.objects.get(telegram_id=user)
-            video_obj = Video.objects.get(video_id=video_id)
+            TelegramUser.objects.get(telegram_id=user)
+            Video.objects.get(video_id=video_id)
         except (TelegramUser.DoesNotExist, Video.DoesNotExist):
             return Response({'error': 'Invalid user or video ID'}, status=status.HTTP_404_NOT_FOUND)
 
@@ -261,6 +304,7 @@ class RegisterAPI(APIView):
     API endpoint to register a new user or retrieve an existing user's data.
     Requires 'telegram_id' in the request data.
     """
+
     def post(self, request, *args, **kwargs):
         data = request.data
         telegram_id_value = data.get('telegram_id')
@@ -291,7 +335,7 @@ class SearchAPI(APIView):
         query = request.query_params.get('q', '')
         query_tags = request.query_params.get('tags', '')
 
-        if query:
+        if query:  # for simple search
             query_slug = slugify(query)
             query_words = set(word for word in query_slug.split('-') if word)
 
@@ -310,7 +354,7 @@ class SearchAPI(APIView):
 
             return paginator.get_paginated_response(serializer.data)
 
-        elif query_tags:
+        elif query_tags:  # for tag search
 
             tags_list = query_tags.split(',')
 
@@ -343,32 +387,51 @@ class TagsAPIGet(ListAPIView):
     """
     queryset = Tag.objects.all()
     serializer_class = TagsSerializer
+    cache_timeout = 60 * 10
+
+    def get(self, request, *args, **kwargs):
+        cache_key = 'tags_api_get'
+        cached_data = cache.get(cache_key)
+        if cached_data:
+            return Response(cached_data)
+
+        response = super().get(request, *args, **kwargs)
+        cache.set(cache_key, response.data, self.cache_timeout)
+
+        return response
 
 
+@cache_page(60 * 10)
 def index(request):
     return render(request, 'video_app/index.html')
 
 
+@cache_page(60 * 10)
 def main(request):
     return render(request, 'video_app/main.html', {"show_back_button": False})
 
 
+@cache_page(60 * 10)
 def account(request):
     return render(request, 'video_app/account.html', {"show_back_button": True})
 
 
+@cache_page(60 * 10)
 def page_not_found(request, exception):
     return render(request, 'video_app/404.html', {"show_back_button": True})
 
 
+@cache_page(60 * 10)
 def subscriptions(request):
     return render(request, 'video_app/subscriptions.html', {"show_back_button": True})
 
 
+@cache_page(60 * 10)
 def search(request):
     return render(request, 'video_app/search.html', {"show_back_button": True})
 
 
+@cache_page(60 * 10)
 def tag_search(request):
     return render(request, 'video_app/tag_search.html', {"show_back_button": True})
 
@@ -400,6 +463,7 @@ def proxy_video(request):
         return HttpResponse(f"Error fetching video: {str(e)}", status=500)
 
 
+@cache_page(60 * 10)
 def edit_video(request, video_id):
     instance = get_object_or_404(Video.objects.prefetch_related('tags'), video_id=video_id)
 
@@ -419,6 +483,7 @@ def edit_video(request, video_id):
     return render(request, 'video_app/edit_video.html', {'form': form, 'video': instance, "show_back_button": True})
 
 
+@cache_page(60 * 10)
 def view_video(request, video_slug):
     instance = get_object_or_404(Video, video_slug=video_slug)
 
