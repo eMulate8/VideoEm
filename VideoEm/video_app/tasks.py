@@ -1,17 +1,12 @@
-import os
-import django
-import schedule
 import time
+
+from celery import shared_task
+from video_app.models import Video
+from video_app.utils import renew_temp_links
 from django.core.paginator import Paginator
 
 
-os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'VideoEm.settings')
-django.setup()
-
-from video_app.models import Video
-from video_app.utils import renew_temp_links
-
-
+@shared_task
 def update_links():
     """
     Fetch all videos from the database and renew their temporary links.
@@ -29,18 +24,4 @@ def update_links():
     except Exception as e:
 
         print(f"Error updating links: {e}")
-
-if __name__ == "__main__":
-
-    update_links()
-
-    schedule.every().hour.do(update_links)
-    try:
-        while True:
-            schedule.run_pending()
-            time.sleep(10)
-    except KeyboardInterrupt:
-        print("Script stopped by user.")
-
-
 
