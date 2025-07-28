@@ -1,5 +1,7 @@
 import requests
 from django.db.models import QuerySet
+from contextlib import contextmanager
+from django.db import connection
 
 from bot_main import BOT_TOKEN
 
@@ -54,3 +56,16 @@ def renew_temp_links(video_queryset: QuerySet):
         video_queryset.model.objects.bulk_update(updated_objects, ['temp_link'])
 
     return video_queryset
+
+
+@contextmanager
+def higher_work_mem():
+    """
+    Context manager that temporarily increases work_mem for PostgreSQL queries.
+    """
+    with connection.cursor() as cursor:
+        cursor.execute("SET LOCAL work_mem = '64MB';")
+        try:
+            yield
+        finally:
+            cursor.execute("RESET work_mem;")

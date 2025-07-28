@@ -27,6 +27,7 @@ from .serializers import VideoAddSerializer, UserSerializer, VideoGetSerializerB
     VideoGetSerializerWithTags
 from .pagination import VideoCursorPagination, HistoryCursorPagination
 from bot_main import BOT_TOKEN
+from .utils import higher_work_mem
 
 
 class VideoAddAPIPost(CreateAPIView):
@@ -119,20 +120,19 @@ class MyHistoryAPIGet(ListAPIView):
 
         if not telegram_id:
             return Response({"error": "The 'user' query parameter is required."}, status=status.HTTP_400_BAD_REQUEST)
+        with higher_work_mem():
+            user = TelegramUser.objects.get(telegram_id=telegram_id)
 
-        user = TelegramUser.objects.get(telegram_id=telegram_id)
+            if not user:
+                return Video.objects.none()
 
-        if not user:
-            return Video.objects.none()
+            latest_watch_subquery = WatchingHistory.objects.filter(
+                user=user, video_id=OuterRef('video_id')
+            ).values('watched_at')
 
-        latest_watch_subquery = WatchingHistory.objects.filter(
-            user=user, video_id=OuterRef('video_id')
-        ).values('watched_at')
+            history = Video.objects.filter(watchinghistory__user=user).annotate(
+                watched_at=Subquery(latest_watch_subquery)).order_by('-watched_at')
 
-        history = Video.objects.filter(watchinghistory__user=user).annotate(
-            watched_at=Subquery(latest_watch_subquery)).order_by('-watched_at')
-
-        print(history)
 
         return history
 
@@ -334,43 +334,44 @@ class SearchAPI(APIView):
     def get(self, request, *args, **kwargs):
         query = request.query_params.get('q', '')
         query_tags = request.query_params.get('tags', '')
+        with higher_work_mem():
 
-        if query:  # for simple search
-            query_slug = slugify(query)
-            query_words = set(word for word in query_slug.split('-') if word)
+            if query:  # for simple search
+                query_slug = slugify(query)
+                query_words = set(word for word in query_slug.split('-') if word)
 
-            if not query_words:
+                if not query_words:
+                    return Response([], status=status.HTTP_400_BAD_REQUEST)
+
+                matched_words = SlugWord.objects.filter(word__in=query_words)
+
+                videos = Video.objects.filter(slug_words__in=matched_words).distinct().prefetch_related('slug_words')
+                videos = videos.annotate(match_count=Count('slug_words')).order_by('-match_count', '-time_published')
+
+                paginator = VideoCursorPagination()
+                paginated_videos = paginator.paginate_queryset(videos, request)
+
+                serializer = VideoGetSerializerWithSlugwords(paginated_videos, many=True)
+
+                return paginator.get_paginated_response(serializer.data)
+
+            elif query_tags:  # for tag search
+
+                tags_list = query_tags.split(',')
+
+                queryset = (Video.objects.annotate(video_tags=ArrayAgg('tags__tag'))
+                            .filter(Q(video_tags__contains=tags_list))
+                            .prefetch_related('tags'))
+
+                paginator = VideoCursorPagination()
+                paginated_videos = paginator.paginate_queryset(queryset, request)
+
+                serializer = VideoGetSerializerWithTags(paginated_videos, many=True)
+
+                return paginator.get_paginated_response(serializer.data)
+
+            else:
                 return Response([], status=status.HTTP_400_BAD_REQUEST)
-
-            matched_words = SlugWord.objects.filter(word__in=query_words)
-
-            videos = Video.objects.filter(slug_words__in=matched_words).distinct().prefetch_related('slug_words')
-            videos = videos.annotate(match_count=Count('slug_words')).order_by('-match_count', '-time_published')
-
-            paginator = VideoCursorPagination()
-            paginated_videos = paginator.paginate_queryset(videos, request)
-
-            serializer = VideoGetSerializerWithSlugwords(paginated_videos, many=True)
-
-            return paginator.get_paginated_response(serializer.data)
-
-        elif query_tags:  # for tag search
-
-            tags_list = query_tags.split(',')
-
-            queryset = (Video.objects.annotate(video_tags=ArrayAgg('tags__tag'))
-                        .filter(Q(video_tags__contains=tags_list))
-                        .prefetch_related('tags'))
-
-            paginator = VideoCursorPagination()
-            paginated_videos = paginator.paginate_queryset(queryset, request)
-
-            serializer = VideoGetSerializerWithTags(paginated_videos, many=True)
-
-            return paginator.get_paginated_response(serializer.data)
-
-        else:
-            return Response([], status=status.HTTP_400_BAD_REQUEST)
 
 
 class TagsAPICreate(CreateAPIView):
