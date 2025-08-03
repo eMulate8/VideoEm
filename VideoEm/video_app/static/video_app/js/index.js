@@ -46,17 +46,8 @@ document.addEventListener("DOMContentLoaded", () => {
     let fullName;
     let telegramId;
 
-    if (userData === null || userData === undefined) {
-        fullName = 'Foma Turnak';
-        telegramId = 530;
-    }
-    else {
-        fullName = userData.first_name + ' ' + userData.last_name ;
-        telegramId = userData.id;
-    }
-
-
-    document.getElementById("userdata_unsafe").textContent = fullName;
+    fullName = userData.first_name + ' ' + userData.last_name ;
+    telegramId = userData.id;
 
     sendData(fullName, telegramId, csrf).then(() => {
             window.location.href = `main/?v=${version}`;
