@@ -103,7 +103,7 @@ WSGI_APPLICATION = 'VideoEm.wsgi.application'
 CACHES = {
     "default": {
         "BACKEND": "django_redis.cache.RedisCache",
-        "LOCATION": "redis://127.0.0.1:6379/1",
+        "LOCATION": "redis://redis:6379/1",
         "OPTIONS": {
             "CLIENT_CLASS": "django_redis.client.DefaultClient",
         },
@@ -111,8 +111,8 @@ CACHES = {
     }
 }
 
-CELERY_BROKER_URL = 'redis://localhost:6379/2'
-CELERY_RESULT_BACKEND = 'redis://localhost:6379/3'
+CELERY_BROKER_URL = 'redis://redis:6379/2'
+CELERY_RESULT_BACKEND = 'redis://redis:6379/3'
 CELERY_TIMEZONE = 'Europe/Moscow'
 CELERY_ENABLE_UTC = False
 
@@ -130,7 +130,7 @@ DATABASES = {
         'NAME': '<BD_NAME>',
         'USER': '<USER_NAME>',
         'PASSWORD': '<PWD>',
-        'HOST': 'localhost',
+        'HOST': 'db',
         'PORT': '5432',
         'CONN_MAX_AGE': 300,
         'OPTIONS': {

@@ -1,10 +1,13 @@
 import requests
+import os
+
 from django.db.models import QuerySet
 from contextlib import contextmanager
 from django.db import connection
 
-from bot_main import BOT_TOKEN
 
+
+BOT_TOKEN = os.environ.get('BOT_TOKEN')
 
 def get_new_temp_link(video_id):
     """

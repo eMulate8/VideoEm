@@ -1,0 +1,44 @@
+
+services:
+  web:
+    image: videoapp
+    command: python manage.py runserver 0.0.0.0:8000
+    volumes:
+      - .:/app
+    ports:
+      - "8000:8000"
+    environment:
+      - DJANGO_SETTINGS_MODULE=VideoEm.settings
+      - PYTHONPATH=/app/VideoEm
+      - BOT_TOKEN=<telegram_bot_token>
+    depends_on:
+      - db
+      - redis
+
+  db:
+    image: postgres:13
+    environment:
+      POSTGRES_DB: <postgres_db_name>
+      POSTGRES_USER: <postgres_user_name>
+      POSTGRES_PASSWORD: <postgres_pwd>
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+
+  redis:
+    image: redis:6
+    ports:
+      - "6379:6379"
+
+  celery_worker:
+    image: videoapp
+    command: celery -A VideoEm worker --loglevel=debug --beat
+    volumes:
+      - .:/app
+    depends_on:
+      - db
+      - redis
+      
+volumes:
+  postgres_data:

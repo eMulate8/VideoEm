@@ -1,5 +1,6 @@
 import uuid
 import requests
+import os
 
 from django.db import transaction
 from django.db.models import OuterRef, Subquery
@@ -26,8 +27,9 @@ from .serializers import VideoAddSerializer, UserSerializer, VideoGetSerializerB
     WatchingHistorySerializer, SubscriptionSerializer, TagsSerializer, VideoGetSerializerWithSlugwords, \
     VideoGetSerializerWithTags
 from .pagination import VideoCursorPagination, HistoryCursorPagination
-from bot_main import BOT_TOKEN
 from .utils import higher_work_mem
+
+BOT_TOKEN = os.environ.get('BOT_TOKEN')
 
 
 class VideoAddAPIPost(CreateAPIView):
