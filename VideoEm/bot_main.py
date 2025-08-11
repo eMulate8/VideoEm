@@ -1,10 +1,11 @@
 import requests
+import os
 
 from telegram import Update, InlineKeyboardMarkup, InlineKeyboardButton, WebAppInfo, KeyboardButton, \
     ReplyKeyboardMarkup
 from telegram.ext import CommandHandler, ContextTypes, filters, Application, MessageHandler, CallbackQueryHandler
 
-BOT_TOKEN = "<BOT_TOKEN>"
+BOT_TOKEN = os.environ.get('BOT_TOKEN')
 
 web_app = WebAppInfo(url='<WEB_APP_URL>')
 

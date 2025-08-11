@@ -40,5 +40,9 @@ services:
       - db
       - redis
       
+  bot:
+    image: videoapp
+    command: python bot_main.py
+      
 volumes:
   postgres_data:
