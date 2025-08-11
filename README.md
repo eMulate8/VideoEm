@@ -61,16 +61,7 @@ A Django web app that hosts videos using **Telegram servers for storage**. Users
 	```bash
    docker-compose up
    ``` 
-
-
-## 🔧 Technical Notes  
-- **Telegram Limits**:  
-  - Bot cannot access videos >20 MB.  
-  - File links expire hourly (`update_temp_links.py` fixes this). 
-  - Not showing first frame of video as preview (added thuimbnail)  
-
----
-
+   
 ## 📄 License  
 Apache License 2.0
 
